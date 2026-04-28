@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    environment:
+      PORT: 5000
+      CLIENT_ORIGIN: http://localhost:5173,http://127.0.0.1:5173
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DB_NAME: digital-healthcare
+      JWT_SECRET: change-me
+      AUDIT_SECRET: change-me-too
+    depends_on:
+      - mongo
+    ports:
+      - "5000:5000"
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+
+volumes:
+  mongo_data:
